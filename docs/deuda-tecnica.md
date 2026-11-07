@@ -25,3 +25,7 @@
 | P10 | Un contacto encontrado por teléfono no completa su email si llega después | Subproyecto 2 |
 | P11 | El mailer SMTP reintenta también errores permanentes (auth, 5xx) | Subproyecto 2 (reintentar solo 4xx transitorios / red) |
 | P12 | `/sim/outbox` sin autenticación (solo existe con `SIMULATOR_ENABLED=true`) | Subproyecto 4 (detrás del auth del backoffice); nunca activar el simulador en producción |
+| P13 | `api/src/db/client.ts` (API generada) conecta sin `prepare:false`; el pooler transaccional de Supabase (6543) fallará cuando los handlers usen la BD | Subproyecto 4 (`prepare:false` o reutilizar el db de `apps/agents`) |
+| P14 | `render.yaml` sin paso de migración; `drizzle-kit` es devDependency y se omite con `NODE_ENV=production` | Migraciones a mano contra Supabase antes del primer deploy (`yarn workspace @bextia/agents db:migrate` desde local, con aprobación); evaluar `preDeployCommand` con el migrator de drizzle-orm en Subproyecto 2 |
+| P15 | Canal web sin secreto acepta cualquier email/phone: suplantación de conversación; riesgo real desde sp3 (Agente 2 ve la reserva) | Subproyecto 3 (token de sesión firmado del widget / verificación OTP antes de exponer datos de reserva) |
+| P16 | `ANTHROPIC_API_KEY` declarada en `render.yaml` pero no validada ni conectada (el envoltorio LLM se conecta en sp2) | Subproyecto 2 |
