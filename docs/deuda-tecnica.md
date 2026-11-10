@@ -41,3 +41,6 @@
 | P26 | Un error no-LLM en el dispatch (BD, transición) deja al cliente sin respuesta de respaldo | Plan 3 (try/catch exterior común a los agentes) |
 | P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Subproyecto 4 o al importar CSV |
 | P28 | `promoteStale` consulta el último mensaje lead por lead (N+1) | Al crecer el volumen: una sola query con `GROUP BY` |
+| P29 | Doble email posible entre `notifyNow` y `deliverDue` (el email sale antes de reclamar la fila; ventana estrecha) | Al escalar junto con P17 (reclamar con UPDATE antes de enviar) |
+| P30 | Fin de jornada fijo a las 19:00; no sigue `business_hours` del mercado | Subproyecto 4 junto con P19 |
+| P31 | Un envío SMTP colgado bloquea la cola de dispatch de esa conversación | Plan 5 junto con P22 (timeout total por turno) |
