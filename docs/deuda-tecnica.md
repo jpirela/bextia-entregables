@@ -29,7 +29,6 @@
 | P14 | `render.yaml` sin paso de migración; `drizzle-kit` es devDependency y se omite con `NODE_ENV=production` | Resuelto en sp2: preDeployCommand con el migrador de drizzle-orm (DATABASE_URL_DIRECT) |
 | P15 | Canal web sin secreto acepta cualquier email/phone: suplantación de conversación; riesgo real desde sp3 (Agente 2 ve la reserva) | Subproyecto 3 (token de sesión firmado del widget / verificación OTP antes de exponer datos de reserva) |
 | P16 | `ANTHROPIC_API_KEY` declarada en `render.yaml` pero no validada ni conectada (el envoltorio LLM se conecta en sp2) | Resuelto en sp2 |
-
 | P17 | Entrega de leads por intervalo en el proceso (15 min): una sola instancia; con varias, duplicaría emails | Al escalar: cron de Render o lock en Postgres (pg_advisory_lock) |
 | P18 | `api/` no se regeneró tras agregar campos al contrato (K4); las rutas generadas no exponen lead.tipo, requiere_humano ni sales_agent.tipos_lead | Subproyecto 4 (handlers a mano) |
 | P19 | Jornada del comercial fija lun–vie desde las 08:00 de su zona; no usa festivos ni horario propio | Subproyecto 4 (horario por comercial en el backoffice) |
