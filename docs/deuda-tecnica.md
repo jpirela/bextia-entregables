@@ -33,3 +33,11 @@
 | P18 | `api/` no se regeneró tras agregar campos al contrato (K4); las rutas generadas no exponen lead.tipo, requiere_humano ni sales_agent.tipos_lead | Subproyecto 4 (handlers a mano) |
 | P19 | Jornada del comercial fija lun–vie desde las 08:00 de su zona; no usa festivos ni horario propio | Subproyecto 4 (horario por comercial en el backoffice) |
 | P20 | La entrega programada no corre al arrancar: tras un redeploy los leads pendientes esperan hasta 15 min | Al escalar junto con P17 (cron externo) o corrida inicial al arrancar |
+| P21 | Serialización por conversación y registro de mensajes ya contestados en memoria (válido con instancia única) | Al escalar junto con P2/P17 (lock en Postgres) |
+| P22 | Peor caso de respuesta (~2 min: extracción + embedding + conversación, con reintentos) supera el objetivo de 30 s | Plan 5 (medir con el KPI `respuesta_enviada`; presupuesto total por turno) |
+| P23 | Migración 0002 falla sin diagnóstico si hay conversaciones abiertas duplicadas o leads repetidos | Antes del primer deploy: consulta previa de duplicados en el runbook |
+| P24 | Firma del webhook de entrega sin timestamp (repetible) | Cuando haya un receptor real: firmar `${ts}.${body}` |
+| P25 | `resumen_ia` no se regenera si el cliente sigue escribiendo tras la asignación | Subproyecto 4 o al entregar (regenerar si cambió) |
+| P26 | Un error no-LLM en el dispatch (BD, transición) deja al cliente sin respuesta de respaldo | Plan 3 (try/catch exterior común a los agentes) |
+| P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Subproyecto 4 o al importar CSV |
+| P28 | `promoteStale` consulta el último mensaje lead por lead (N+1) | Al crecer el volumen: una sola query con `GROUP BY` |
