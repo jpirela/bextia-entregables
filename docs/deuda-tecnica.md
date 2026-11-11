@@ -49,3 +49,8 @@
 | P34 | El reembolso del taxi solo se registra (acción `autorizacion` + KPI); no hay flujo de recibo ni pago | Subproyecto 4 (bandeja de incidencias) o fuera del prototipo |
 | P35 | Redacción para el LLM heurística: tapa palabras comunes que coinciden con un nombre (≥3 letras) y deja pasar referencias de menos de 3 caracteres | Plan 5 (evaluación de prompts) o NER si se detecta pérdida de contexto |
 | P36 | Si el runner lanza tras confirmar el estado, la incidencia solo sale por el escalado SLA; restoreWait sin backoff ante fallos persistentes | Al escalar: contador de reintentos en protocolo_estado |
+| P37 | Respuesta del proveedor emparejada por contacto; con varias incidencias activas no avanza nada (escala/ignora) | Exigir `{{referencia}}` en la respuesta del proveedor y emparejar por ella |
+| P38 | Si `closeStale` gana la carrera al manejador, el mensaje del viajero (feedback o reclasificación) se pierde sin respuesta | Reabrir o responder cuando la fila fresca esté `cerrado` |
+| P39 | `/widget/otp` envía códigos a cualquier destino (spam/coste WhatsApp; un tercero puede invalidar el OTP vigente); el texto libre por WhatsApp fuera de 24 h no se entrega | Emitir solo si existe una reserva activa con ese email/teléfono, mantener el 202; plantilla de WhatsApp |
+| P40 | `CODE_RE` redacta números de vuelo ("IB3456") y se pierde contexto | Junto con P35 |
+| P41 | Emergencia desde un número sin reserva va al Agente 1 sin detección previa | Aplicar `detectEmergency` también en leads |
