@@ -54,3 +54,5 @@
 | P39 | `/widget/otp` envía códigos a cualquier destino (spam/coste WhatsApp; un tercero puede invalidar el OTP vigente); el texto libre por WhatsApp fuera de 24 h no se entrega | Emitir solo si existe una reserva activa con ese email/teléfono, mantener el 202; plantilla de WhatsApp |
 | P40 | `CODE_RE` redacta números de vuelo ("IB3456") y se pierde contexto | Junto con P35 |
 | P41 | Emergencia desde un número sin reserva va al Agente 1 sin detección previa | Aplicar `detectEmergency` también en leads |
+| P42 | Un proveedor que escribe después del cierre de la incidencia (p. ej. "cliente entregado") cae en el Agente 1 (leads): el reconocimiento filtra `estado <> cerrado` | Quitar el filtro de estado y dejar solo la ventana de 7 días; las cerradas registran `mensaje_proveedor_descartado` |
+| P43 | El reconocimiento del proveedor usa `lower(proveedor_contacto)` y una subconsulta correlada por fila en cada mensaje entrante: no aprovecha el índice; además un solo mensaje del proveedor puede escalar todas sus incidencias activas (ver P33/P37) | Guardar el contacto ya normalizado y comparar con `eq`, o índice funcional; emparejar por referencia (P37) |
