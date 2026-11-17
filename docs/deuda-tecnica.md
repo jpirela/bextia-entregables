@@ -39,7 +39,7 @@
 | P24 | Firma del webhook de entrega sin timestamp (repetible) | Cuando haya un receptor real: firmar `${ts}.${body}` |
 | P25 | `resumen_ia` no se regenera si el cliente sigue escribiendo tras la asignación | Subproyecto 4 o al entregar (regenerar si cambió) |
 | P26 | Un error no-LLM en el dispatch (BD, transición) deja al cliente sin respuesta de respaldo | Mitigado en sp3 para el Agente 2 (catch exterior recover); el Agente 1 sigue igual |
-| P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Subproyecto 4 o al importar CSV |
+| P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Resuelto en sp4 (T7): la importación normaliza el email (trim + minúsculas), busca contactos sin distinguir formato y corrige los previos |
 | P28 | `promoteStale` consulta el último mensaje lead por lead (N+1) | Al crecer el volumen: una sola query con `GROUP BY` |
 | P29 | Doble email posible entre `notifyNow` y `deliverDue` (el email sale antes de reclamar la fila; ventana estrecha) | Al escalar junto con P17 (reclamar con UPDATE antes de enviar) |
 | P30 | Fin de jornada fijo a las 19:00; no sigue `business_hours` del mercado | Subproyecto 4 junto con P19 |
