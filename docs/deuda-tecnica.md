@@ -31,13 +31,13 @@
 | P16 | `ANTHROPIC_API_KEY` declarada en `render.yaml` pero no validada ni conectada (el envoltorio LLM se conecta en sp2) | Resuelto en sp2 |
 | P17 | Entrega de leads por intervalo en el proceso (15 min): una sola instancia; con varias, duplicaría emails | Al escalar: cron de Render o lock en Postgres (pg_advisory_lock) |
 | P18 | `api/` no se regeneró tras agregar campos al contrato (K4); las rutas generadas no exponen lead.tipo, requiere_humano ni sales_agent.tipos_lead | Resuelto en sp4 (Task 4): `/api/leads` escrito a mano en `apps/agents` (expone `tipo` y `requiere_humano`; `sales_agent.tipos_lead` llega con la gestión de comerciales); `api/` queda como contrato de referencia y fuente de `schema.ts` |
-| P19 | Jornada del comercial fija lun–vie desde las 08:00 de su zona; no usa festivos ni horario propio | Subproyecto 4 (horario por comercial en el backoffice) |
+| P19 | Jornada del comercial fija lun–vie desde las 08:00 de su zona; no usa festivos ni horario propio | Resuelto en sp4 (T9, 7167d79): horario y festivos por comercial en la entrega de leads (ver P30 para lo que falta) |
 | P20 | La entrega programada no corre al arrancar: tras un redeploy los leads pendientes esperan hasta 15 min | Al escalar junto con P17 (cron externo) o corrida inicial al arrancar |
 | P21 | Serialización por conversación y registro de mensajes ya contestados en memoria (válido con instancia única) | Al escalar junto con P2/P17 (lock en Postgres) |
 | P22 | Peor caso de respuesta (~2 min: extracción + embedding + conversación, con reintentos) supera el objetivo de 30 s | Plan 5 (medir con el KPI `respuesta_enviada`; presupuesto total por turno) |
 | P23 | Migración 0002 falla sin diagnóstico si hay conversaciones abiertas duplicadas o leads repetidos | Antes del primer deploy: consulta previa de duplicados en el runbook |
 | P24 | Firma del webhook de entrega sin timestamp (repetible) | Cuando haya un receptor real: firmar `${ts}.${body}` |
-| P25 | `resumen_ia` no se regenera si el cliente sigue escribiendo tras la asignación | Subproyecto 4 o al entregar (regenerar si cambió) |
+| P25 | `resumen_ia` no se regenera si el cliente sigue escribiendo tras la asignación | **Pendiente explícito:** no se resuelve en el sp4; regenerar el resumen si cambió la conversación tras la asignación |
 | P26 | Un error no-LLM en el dispatch (BD, transición) deja al cliente sin respuesta de respaldo | Mitigado en sp3 para el Agente 2 (catch exterior recover); el Agente 1 sigue igual |
 | P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Resuelto en sp4 (T7): la importación normaliza el email (trim + minúsculas), busca contactos sin distinguir formato y corrige los previos |
 | P28 | `promoteStale` consulta el último mensaje lead por lead (N+1) | Al crecer el volumen: una sola query con `GROUP BY` |
@@ -69,3 +69,11 @@
 | P54 | Backoffice: si el refresh programado falla por red, no se reprograma; al vencer el access token la UI sigue mostrando la sesión hasta la siguiente llamada (que reintenta) | Reintento con backoff en `session.ts` |
 | P55 | Backoffice: `logout()` sin access token en memoria borra el refresh token local pero no lo revoca en la API | Permitir revocar con el refresh token en `/api/auth/logout` |
 | P56 | Backoffice: bundle en un solo chunk de ~508 kB (133 kB gzip); `exceljs` (peer de Lara) no instalado | `manualChunks`/`lazy` por página; instalar `exceljs` 4.4.0 si se usa un compuesto que lo requiera |
+| P57 | Purga RGPD de contactos, mensajes y leads (derecho de supresión y plazo de retención) sin implementar | Candidato a job programado + endpoint admin |
+| P58 | Las reglas de scoring solo se cambian por env/código; no hay editor en el panel | Editor de reglas en el backoffice |
+| P59 | Los roles (`app_metadata.role`) se asignan a mano en Supabase (SQL o dashboard); no hay alta de usuarios desde el panel | Alta de usuarios y asignación de roles desde el panel |
+| P60 | Backoffice: las props reales de Lara 0.4.12 difieren de las del plan: `Shell`, `Inbox` (cliente de correo), `CrudManager` (controlado, con diff en `src/lib/crud-diff.ts`) y `KpiRow`, `Line`, `Donut`, `VBar`, `Breakdown` (reciben `rows` + `MetricSpec`; `Line` admite una sola métrica) | Adaptado en T11-T13; revisar al actualizar Lara |
+| P61 | Backoffice: el filtro de estado de leads es del lado del cliente, sobre un máximo de 500 leads | Filtrar en el servidor con paginación |
+| P62 | Backoffice, Config: si la API rechaza un cambio se pierde lo que el usuario tecleó, porque el drawer ya cerró | Mantener el drawer abierto y conservar el borrador hasta confirmar |
+| P63 | Backoffice, Config: las filas inactivas de `sales_agent` y `on_call` quedan ocultas | Interruptor "ver inactivos" |
+| P64 | Backoffice: el layout no se verificó en el navegador (solo typecheck, tests y build) | Revisión visual por rol y en móvil |
