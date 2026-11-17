@@ -77,3 +77,11 @@
 | P62 | Backoffice, Config: si la API rechaza un cambio se pierde lo que el usuario tecleó, porque el drawer ya cerró | Mantener el drawer abierto y conservar el borrador hasta confirmar |
 | P63 | Backoffice, Config: las filas inactivas de `sales_agent` y `on_call` quedan ocultas | Interruptor "ver inactivos" |
 | P64 | Backoffice: el layout no se verificó en el navegador (solo typecheck, tests y build) | Revisión visual por rol y en móvil |
+| P65 | Backoffice: los enlaces de los emails (`/leads/:id`, `/incidencias/:id`) abren el detalle en un panel propio sobre la bandeja, porque el `Inbox` de Lara no admite selección externa; no hay router ni URL por sección | Selección controlada en Lara o router real |
+| P66 | Un access token sigue valiendo hasta `exp` (~1 h) tras revocar el rol; no hay lista de revocación | Documentar en README y bajar el "JWT expiry" de Supabase (10-15 min), junto a P59 |
+| P67 | Un comercial desactivado (`sales_agent.activo=false`) con rol vigente sigue viendo sus leads (`api/leads.ts` `scope()` y RLS no filtran `activo`) | Filtrar `activo` en `scope()` y en la política, o documentar que la baja de acceso es quitar el rol |
+| P68 | La política `sales_agent_select_propio` deja leer su fila a cualquier `authenticated`; con signups públicos activos se puede reclamar el email de un comercial sin cuenta | Desactivar signups públicos (precondición del SQL/README) y exigir `app_metadata.role = 'comercial'` en la política |
+| P69 | Backoffice, Leads: la bandeja abre en la carpeta "Nuevo", vacía para un comercial (sus leads están en `asignado`/`entregado`) | Carpeta inicial según rol o la primera con elementos |
+| P70 | Rango de KPI/export en días UTC mientras el negocio opera en Europe/Madrid (`lib/kpi.ts`, `api/http.ts`, `summarize`) | Enviar instantes ISO en la zona del negocio o aceptar `tz` en la API |
+| P71 | Importación CSV: solo separador coma y UTF-8 (`api/csv.ts`, `pages/Import.tsx`); Excel en español guarda con `;` y ANSI | Detectar `;`, avisar si hay `�` y documentar "CSV UTF-8" en la página |
+| P72 | Backoffice: si falta `VITE_API_URL` en el build, `lib/client.ts` lanza al cargar y la página queda en blanco sin mensaje | Validar al arrancar con error claro o fallar el build en `vite.config.ts` |
