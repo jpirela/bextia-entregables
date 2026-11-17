@@ -65,3 +65,4 @@
 | P50 | Faltan tests de config: campos no listados, PATCH parciales, `on_call`, borrado físico, ids no UUID, `horario`/`festivos` de `sales_agent` | Ampliar `config.test.ts` |
 | P51 | Faltan tests de `agentAvailable`: festivo en borde de fecha UTC/local, `horario` con zona nula, integración de `deliverDue` con horario propio | Ampliar `delivery.test.ts` |
 | P52 | El contrato (`resources.mjs`/`jor.json`) diverge de la API: expone `createProtocol` (404), patrón de `telefono` distinto y faltan `max` | Alinear contrato y config |
+| P53 | `kb:index` (`src/rag/index-kb.ts`) lee `SUPABASE_URL` sin validar https; `main.ts` sigue con `ipLimiter` y `widget` en línea dentro de `createApp` | Reusar `readEnv` en el script; extraer las constantes al tocar `main.ts` |
