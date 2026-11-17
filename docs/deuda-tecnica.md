@@ -13,7 +13,7 @@
 
 | # | Ítem | Se resuelve en |
 |---|---|---|
-| P1 | `/api/*` protegido con un token estático (`API_TOKEN`) | Subproyecto 4 (Supabase Auth + RLS por rol) |
+| P1 | `/api/*` protegido con un token estático (`API_TOKEN`) | Resuelto en sp4 (T1+T2): JWT de Supabase Auth con rol en `app_metadata`; `API_TOKEN` eliminado en la T10a |
 | P2 | Limitador de tasa en memoria: válido para una sola instancia | Al escalar a más de una instancia (mover a Postgres) |
 | P3 | Proveedor de embeddings para `kb_article.embedding` sin decidir (columna `vector(1024)`) | Resuelto en sp2: gte-small (384) vía Edge Function embed; despliegue pendiente de aprobación |
 | P4 | Mensajes de WhatsApp no textuales se ignoran | Resuelto en sp2 |
@@ -24,29 +24,29 @@
 | P9 | Dos mensajes simultáneos pueden abrir conversaciones duplicadas | Resuelto en sp2 |
 | P10 | Un contacto encontrado por teléfono no completa su email si llega después | Resuelto en sp2 |
 | P11 | El mailer SMTP reintenta también errores permanentes (auth, 5xx) | Resuelto en sp2 |
-| P12 | `/sim/outbox` sin autenticación (solo existe con `SIMULATOR_ENABLED=true`) | Subproyecto 4 (detrás del auth del backoffice); nunca activar el simulador en producción |
-| P13 | `api/src/db/client.ts` (API generada) conecta sin `prepare:false`; el pooler transaccional de Supabase (6543) fallará cuando los handlers usen la BD | Subproyecto 4 (`prepare:false` o reutilizar el db de `apps/agents`) |
+| P12 | `/sim/outbox` sin autenticación (solo existe con `SIMULATOR_ENABLED=true`) | Resuelto en sp4 (T1+T2): el simulador vive en `/api/sim`, detrás del JWT; nunca activar el simulador en producción |
+| P13 | `api/src/db/client.ts` (API generada) conecta sin `prepare:false`; el pooler transaccional de Supabase (6543) fallará cuando los handlers usen la BD | Resuelto en sp4 (Task 4): la API generada deja de montarse; el único cliente de BD es el de `apps/agents` (`prepare:false`) |
 | P14 | `render.yaml` sin paso de migración; `drizzle-kit` es devDependency y se omite con `NODE_ENV=production` | Resuelto en sp2: preDeployCommand con el migrador de drizzle-orm (DATABASE_URL_DIRECT) |
 | P15 | Canal web sin secreto acepta cualquier email/phone: suplantación de conversación; riesgo real desde sp3 (Agente 2 ve la reserva) | Resuelto en sp3: OTP de 6 dígitos + token HMAC firmado (WIDGET_TOKEN_SECRET) |
 | P16 | `ANTHROPIC_API_KEY` declarada en `render.yaml` pero no validada ni conectada (el envoltorio LLM se conecta en sp2) | Resuelto en sp2 |
 | P17 | Entrega de leads por intervalo en el proceso (15 min): una sola instancia; con varias, duplicaría emails | Al escalar: cron de Render o lock en Postgres (pg_advisory_lock) |
-| P18 | `api/` no se regeneró tras agregar campos al contrato (K4); las rutas generadas no exponen lead.tipo, requiere_humano ni sales_agent.tipos_lead | Subproyecto 4 (handlers a mano) |
-| P19 | Jornada del comercial fija lun–vie desde las 08:00 de su zona; no usa festivos ni horario propio | Subproyecto 4 (horario por comercial en el backoffice) |
+| P18 | `api/` no se regeneró tras agregar campos al contrato (K4); las rutas generadas no exponen lead.tipo, requiere_humano ni sales_agent.tipos_lead | Resuelto en sp4 (Task 4): `/api/leads` escrito a mano en `apps/agents` (expone `tipo` y `requiere_humano`; `sales_agent.tipos_lead` llega con la gestión de comerciales); `api/` queda como contrato de referencia y fuente de `schema.ts` |
+| P19 | Jornada del comercial fija lun–vie desde las 08:00 de su zona; no usa festivos ni horario propio | Resuelto en sp4 (T9, 7167d79): horario y festivos por comercial en la entrega de leads (ver P30 para lo que falta) |
 | P20 | La entrega programada no corre al arrancar: tras un redeploy los leads pendientes esperan hasta 15 min | Al escalar junto con P17 (cron externo) o corrida inicial al arrancar |
 | P21 | Serialización por conversación y registro de mensajes ya contestados en memoria (válido con instancia única) | Al escalar junto con P2/P17 (lock en Postgres) |
 | P22 | Peor caso de respuesta (~2 min: extracción + embedding + conversación, con reintentos) supera el objetivo de 30 s | Plan 5 (medir con el KPI `respuesta_enviada`; presupuesto total por turno) |
 | P23 | Migración 0002 falla sin diagnóstico si hay conversaciones abiertas duplicadas o leads repetidos | Antes del primer deploy: consulta previa de duplicados en el runbook |
 | P24 | Firma del webhook de entrega sin timestamp (repetible) | Cuando haya un receptor real: firmar `${ts}.${body}` |
-| P25 | `resumen_ia` no se regenera si el cliente sigue escribiendo tras la asignación | Subproyecto 4 o al entregar (regenerar si cambió) |
+| P25 | `resumen_ia` no se regenera si el cliente sigue escribiendo tras la asignación | **Pendiente explícito:** no se resuelve en el sp4; regenerar el resumen si cambió la conversación tras la asignación |
 | P26 | Un error no-LLM en el dispatch (BD, transición) deja al cliente sin respuesta de respaldo | Mitigado en sp3 para el Agente 2 (catch exterior recover); el Agente 1 sigue igual |
-| P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Subproyecto 4 o al importar CSV |
+| P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Resuelto en sp4 (T7): la importación normaliza el email (trim + minúsculas), busca contactos sin distinguir formato y corrige los previos |
 | P28 | `promoteStale` consulta el último mensaje lead por lead (N+1) | Al crecer el volumen: una sola query con `GROUP BY` |
 | P29 | Doble email posible entre `notifyNow` y `deliverDue` (el email sale antes de reclamar la fila; ventana estrecha) | Al escalar junto con P17 (reclamar con UPDATE antes de enviar) |
-| P30 | Fin de jornada fijo a las 19:00; no sigue `business_hours` del mercado | Subproyecto 4 junto con P19 |
+| P30 | **Resuelta parcialmente (T9):** los comerciales con `horario` propio ya siguen su horario y festivos. Los que no lo tienen conservan la jornada por omisión lun-vie 08:00-19:00; sigue sin seguir `business_hours` del mercado | Asignar `horario` a cada comercial desde el panel (`/api/config/sales_agent`) |
 | P31 | Un envío SMTP colgado bloquea la cola de dispatch de esa conversación | Plan 5 junto con P22 (timeout total por turno) |
 | P32 | Temporizadores del protocolo y del SLA por intervalo de 60 s en el proceso (la spec pide cron); una sola instancia | Al escalar: cron de Render o lock en Postgres (pg_advisory_lock); `claimWait` ya evita dobles ejecuciones |
 | P33 | El remitente del proveedor se reconoce por teléfono/email (suplantable) y la verificación por apellido es débil | Firma o enlace de un solo uso para el proveedor; OTP al teléfono/email de la reserva para el viajero |
-| P34 | El reembolso del taxi solo se registra (acción `autorizacion` + KPI); no hay flujo de recibo ni pago | Subproyecto 4 (bandeja de incidencias) o fuera del prototipo |
+| P34 | El reembolso del taxi solo se registra (acción `autorizacion` + KPI); no hay flujo de recibo ni pago | Mitigado en sp4 (Task 5): el operador registra el reembolso (`resultado` con `monto`) solo con una `autorizacion` previa y hasta su tope; recibo y pago real quedan fuera del prototipo |
 | P35 | Redacción para el LLM heurística: tapa palabras comunes que coinciden con un nombre (≥3 letras) y deja pasar referencias de menos de 3 caracteres | Plan 5 (evaluación de prompts) o NER si se detecta pérdida de contexto |
 | P36 | Si el runner lanza tras confirmar el estado, la incidencia solo sale por el escalado SLA; restoreWait sin backoff ante fallos persistentes | Al escalar: contador de reintentos en protocolo_estado |
 | P37 | Respuesta del proveedor emparejada por contacto; con varias incidencias activas no avanza nada (escala/ignora) | Exigir `{{referencia}}` en la respuesta del proveedor y emparejar por ella |
@@ -56,3 +56,32 @@
 | P41 | Emergencia desde un número sin reserva va al Agente 1 sin detección previa | Aplicar `detectEmergency` también en leads |
 | P42 | Un proveedor que escribe después del cierre de la incidencia (p. ej. "cliente entregado") cae en el Agente 1 (leads): el reconocimiento filtra `estado <> cerrado` | Quitar el filtro de estado y dejar solo la ventana de 7 días; las cerradas registran `mensaje_proveedor_descartado` |
 | P43 | El reconocimiento del proveedor usa `lower(proveedor_contacto)` y una subconsulta correlada por fila en cada mensaje entrante: no aprovecha el índice; además un solo mensaje del proveedor puede escalar todas sus incidencias activas (ver P33/P37) | Guardar el contacto ya normalizado y comparar con `eq`, o índice funcional; emparejar por referencia (P37) |
+| P44 | Rate limit del login en memoria por instancia; con el tope lleno, un flood de claves desaloja las más antiguas | Al escalar: contador en Postgres/Redis; el limitador IP de `/api/auth/*` mitiga mientras tanto |
+| P45 | Refresh token del backoffice en `sessionStorage` (expuesto a XSS) | Cookie `httpOnly; Secure; SameSite=Strict` emitida por la API cuando frontend y API compartan dominio |
+| P46 | Config: la clave `embedding` se filtra antes de `check()` en todos los recursos, no solo en `kb_article` | Limitar el filtro a `kb_article` |
+| P47 | Config: `GET /:recurso` sin orden ni límite; en `kb_article` devuelve el `contenido` completo | Paginar, ordenar y omitir `contenido` en el listado |
+| P48 | Config: `after` reindexa todos los artículos pendientes dentro de la petición, sin timeout | Reindexar en segundo plano o con timeout |
+| P49 | Test de KB no comprueba el vaciado/recálculo de `embedding` ni que `GET` lo omita | Ampliar el test |
+| P50 | Faltan tests de config: campos no listados, PATCH parciales, `on_call`, borrado físico, ids no UUID, `horario`/`festivos` de `sales_agent` | Ampliar `config.test.ts` |
+| P51 | Faltan tests de `agentAvailable`: festivo en borde de fecha UTC/local, `horario` con zona nula, integración de `deliverDue` con horario propio | Ampliar `delivery.test.ts` |
+| P52 | El contrato (`resources.mjs`/`jor.json`) diverge de la API: expone `createProtocol` (404), patrón de `telefono` distinto y faltan `max` | Alinear contrato y config |
+| P53 | `kb:index` (`src/rag/index-kb.ts`) lee `SUPABASE_URL` sin validar https; `main.ts` sigue con `ipLimiter` y `widget` en línea dentro de `createApp` | Reusar `readEnv` en el script; extraer las constantes al tocar `main.ts` |
+| P54 | Backoffice: si el refresh programado falla por red, no se reprograma; al vencer el access token la UI sigue mostrando la sesión hasta la siguiente llamada (que reintenta) | Reintento con backoff en `session.ts` |
+| P55 | Backoffice: `logout()` sin access token en memoria borra el refresh token local pero no lo revoca en la API | Permitir revocar con el refresh token en `/api/auth/logout` |
+| P56 | Backoffice: bundle en un solo chunk de ~508 kB (133 kB gzip); `exceljs` (peer de Lara) no instalado | `manualChunks`/`lazy` por página; instalar `exceljs` 4.4.0 si se usa un compuesto que lo requiera |
+| P57 | Purga RGPD de contactos, mensajes y leads (derecho de supresión y plazo de retención) sin implementar | Candidato a job programado + endpoint admin |
+| P58 | Las reglas de scoring solo se cambian por env/código; no hay editor en el panel | Editor de reglas en el backoffice |
+| P59 | Los roles (`app_metadata.role`) se asignan a mano en Supabase (SQL o dashboard); no hay alta de usuarios desde el panel | Alta de usuarios y asignación de roles desde el panel |
+| P60 | Backoffice: las props reales de Lara 0.4.12 difieren de las del plan: `Shell`, `Inbox` (cliente de correo), `CrudManager` (controlado, con diff en `src/lib/crud-diff.ts`) y `KpiRow`, `Line`, `Donut`, `VBar`, `Breakdown` (reciben `rows` + `MetricSpec`; `Line` admite una sola métrica) | Adaptado en T11-T13; revisar al actualizar Lara |
+| P61 | Backoffice: el filtro de estado de leads es del lado del cliente, sobre un máximo de 500 leads | Filtrar en el servidor con paginación |
+| P62 | Backoffice, Config: si la API rechaza un cambio se pierde lo que el usuario tecleó, porque el drawer ya cerró | Mantener el drawer abierto y conservar el borrador hasta confirmar |
+| P63 | Backoffice, Config: las filas inactivas de `sales_agent` y `on_call` quedan ocultas | Interruptor "ver inactivos" |
+| P64 | Backoffice: el layout no se verificó en el navegador (solo typecheck, tests y build) | Revisión visual por rol y en móvil |
+| P65 | Backoffice: los enlaces de los emails (`/leads/:id`, `/incidencias/:id`) abren el detalle en un panel propio sobre la bandeja, porque el `Inbox` de Lara no admite selección externa; no hay router ni URL por sección | Selección controlada en Lara o router real |
+| P66 | Un access token sigue valiendo hasta `exp` (~1 h) tras revocar el rol; no hay lista de revocación | Documentar en README y bajar el "JWT expiry" de Supabase (10-15 min), junto a P59 |
+| P67 | Un comercial desactivado (`sales_agent.activo=false`) con rol vigente sigue viendo sus leads (`api/leads.ts` `scope()` y RLS no filtran `activo`) | Filtrar `activo` en `scope()` y en la política, o documentar que la baja de acceso es quitar el rol |
+| P68 | La política `sales_agent_select_propio` deja leer su fila a cualquier `authenticated`; con signups públicos activos se puede reclamar el email de un comercial sin cuenta | Desactivar signups públicos (precondición del SQL/README) y exigir `app_metadata.role = 'comercial'` en la política |
+| P69 | Backoffice, Leads: la bandeja abre en la carpeta "Nuevo", vacía para un comercial (sus leads están en `asignado`/`entregado`) | Carpeta inicial según rol o la primera con elementos |
+| P70 | Rango de KPI/export en días UTC mientras el negocio opera en Europe/Madrid (`lib/kpi.ts`, `api/http.ts`, `summarize`) | Enviar instantes ISO en la zona del negocio o aceptar `tz` en la API |
+| P71 | Importación CSV: solo separador coma y UTF-8 (`api/csv.ts`, `pages/Import.tsx`); Excel en español guarda con `;` y ANSI | Detectar `;`, avisar si hay `�` y documentar "CSV UTF-8" en la página |
+| P72 | Backoffice: si falta `VITE_API_URL` en el build, `lib/client.ts` lanza al cargar y la página queda en blanco sin mensaje | Validar al arrancar con error claro o fallar el build en `vite.config.ts` |
