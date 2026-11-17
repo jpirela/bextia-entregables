@@ -66,3 +66,6 @@
 | P51 | Faltan tests de `agentAvailable`: festivo en borde de fecha UTC/local, `horario` con zona nula, integración de `deliverDue` con horario propio | Ampliar `delivery.test.ts` |
 | P52 | El contrato (`resources.mjs`/`jor.json`) diverge de la API: expone `createProtocol` (404), patrón de `telefono` distinto y faltan `max` | Alinear contrato y config |
 | P53 | `kb:index` (`src/rag/index-kb.ts`) lee `SUPABASE_URL` sin validar https; `main.ts` sigue con `ipLimiter` y `widget` en línea dentro de `createApp` | Reusar `readEnv` en el script; extraer las constantes al tocar `main.ts` |
+| P54 | Backoffice: si el refresh programado falla por red, no se reprograma; al vencer el access token la UI sigue mostrando la sesión hasta la siguiente llamada (que reintenta) | Reintento con backoff en `session.ts` |
+| P55 | Backoffice: `logout()` sin access token en memoria borra el refresh token local pero no lo revoca en la API | Permitir revocar con el refresh token en `/api/auth/logout` |
+| P56 | Backoffice: bundle en un solo chunk de ~508 kB (133 kB gzip); `exceljs` (peer de Lara) no instalado | `manualChunks`/`lazy` por página; instalar `exceljs` 4.4.0 si se usa un compuesto que lo requiera |
