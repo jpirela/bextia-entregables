@@ -42,7 +42,7 @@
 | P27 | Email del contacto sin normalizar (mayúsculas/espacios) al buscar contactos | Resuelto en sp4 (T7): la importación normaliza el email (trim + minúsculas), busca contactos sin distinguir formato y corrige los previos |
 | P28 | `promoteStale` consulta el último mensaje lead por lead (N+1) | Al crecer el volumen: una sola query con `GROUP BY` |
 | P29 | Doble email posible entre `notifyNow` y `deliverDue` (el email sale antes de reclamar la fila; ventana estrecha) | Al escalar junto con P17 (reclamar con UPDATE antes de enviar) |
-| P30 | Fin de jornada fijo a las 19:00; no sigue `business_hours` del mercado | Subproyecto 4 junto con P19 |
+| P30 | **Resuelta parcialmente (T9):** los comerciales con `horario` propio ya siguen su horario y festivos. Los que no lo tienen conservan la jornada por omisión lun-vie 08:00-19:00; sigue sin seguir `business_hours` del mercado | Asignar `horario` a cada comercial desde el panel (`/api/config/sales_agent`) |
 | P31 | Un envío SMTP colgado bloquea la cola de dispatch de esa conversación | Plan 5 junto con P22 (timeout total por turno) |
 | P32 | Temporizadores del protocolo y del SLA por intervalo de 60 s en el proceso (la spec pide cron); una sola instancia | Al escalar: cron de Render o lock en Postgres (pg_advisory_lock); `claimWait` ya evita dobles ejecuciones |
 | P33 | El remitente del proveedor se reconoce por teléfono/email (suplantable) y la verificación por apellido es débil | Firma o enlace de un solo uso para el proveedor; OTP al teléfono/email de la reserva para el viajero |
@@ -58,3 +58,10 @@
 | P43 | El reconocimiento del proveedor usa `lower(proveedor_contacto)` y una subconsulta correlada por fila en cada mensaje entrante: no aprovecha el índice; además un solo mensaje del proveedor puede escalar todas sus incidencias activas (ver P33/P37) | Guardar el contacto ya normalizado y comparar con `eq`, o índice funcional; emparejar por referencia (P37) |
 | P44 | Rate limit del login en memoria por instancia; con el tope lleno, un flood de claves desaloja las más antiguas | Al escalar: contador en Postgres/Redis; el limitador IP de `/api/auth/*` mitiga mientras tanto |
 | P45 | Refresh token del backoffice en `sessionStorage` (expuesto a XSS) | Cookie `httpOnly; Secure; SameSite=Strict` emitida por la API cuando frontend y API compartan dominio |
+| P46 | Config: la clave `embedding` se filtra antes de `check()` en todos los recursos, no solo en `kb_article` | Limitar el filtro a `kb_article` |
+| P47 | Config: `GET /:recurso` sin orden ni límite; en `kb_article` devuelve el `contenido` completo | Paginar, ordenar y omitir `contenido` en el listado |
+| P48 | Config: `after` reindexa todos los artículos pendientes dentro de la petición, sin timeout | Reindexar en segundo plano o con timeout |
+| P49 | Test de KB no comprueba el vaciado/recálculo de `embedding` ni que `GET` lo omita | Ampliar el test |
+| P50 | Faltan tests de config: campos no listados, PATCH parciales, `on_call`, borrado físico, ids no UUID, `horario`/`festivos` de `sales_agent` | Ampliar `config.test.ts` |
+| P51 | Faltan tests de `agentAvailable`: festivo en borde de fecha UTC/local, `horario` con zona nula, integración de `deliverDue` con horario propio | Ampliar `delivery.test.ts` |
+| P52 | El contrato (`resources.mjs`/`jor.json`) diverge de la API: expone `createProtocol` (404), patrón de `telefono` distinto y faltan `max` | Alinear contrato y config |
