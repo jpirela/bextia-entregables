@@ -39,7 +39,7 @@ No incluido en el total anterior; lo paga el cliente a cada proveedor de servici
 | Claude API (según volumen de conversaciones) | 30–150 |
 | **Total** | **80–225** |
 
-Nota sobre Render: el ender.yaml del prototipo declara el plan starter para el servicio web, más barato que el rango indicado; el techo de US cubre pasar a un plan superior para producción (más memoria, sin suspensión). Se confirma con el plan real al desplegar.
+Nota sobre Render: el `render.yaml` del prototipo declara el plan `starter` para el servicio web, más barato que el rango indicado; el techo de US$50 cubre pasar a un plan superior para producción (más memoria, sin suspensión). Se confirma con el plan real al desplegar.
 
 ## 5. Optimización de costos
 
