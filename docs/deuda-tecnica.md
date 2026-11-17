@@ -13,7 +13,7 @@
 
 | # | Ítem | Se resuelve en |
 |---|---|---|
-| P1 | `/api/*` protegido con un token estático (`API_TOKEN`) | Subproyecto 4 (Supabase Auth + RLS por rol) |
+| P1 | `/api/*` protegido con un token estático (`API_TOKEN`) | Resuelto en sp4 (T1+T2): JWT de Supabase Auth con rol en `app_metadata`; `API_TOKEN` eliminado en la T10a |
 | P2 | Limitador de tasa en memoria: válido para una sola instancia | Al escalar a más de una instancia (mover a Postgres) |
 | P3 | Proveedor de embeddings para `kb_article.embedding` sin decidir (columna `vector(1024)`) | Resuelto en sp2: gte-small (384) vía Edge Function embed; despliegue pendiente de aprobación |
 | P4 | Mensajes de WhatsApp no textuales se ignoran | Resuelto en sp2 |
@@ -24,7 +24,7 @@
 | P9 | Dos mensajes simultáneos pueden abrir conversaciones duplicadas | Resuelto en sp2 |
 | P10 | Un contacto encontrado por teléfono no completa su email si llega después | Resuelto en sp2 |
 | P11 | El mailer SMTP reintenta también errores permanentes (auth, 5xx) | Resuelto en sp2 |
-| P12 | `/sim/outbox` sin autenticación (solo existe con `SIMULATOR_ENABLED=true`) | Subproyecto 4 (detrás del auth del backoffice); nunca activar el simulador en producción |
+| P12 | `/sim/outbox` sin autenticación (solo existe con `SIMULATOR_ENABLED=true`) | Resuelto en sp4 (T1+T2): el simulador vive en `/api/sim`, detrás del JWT; nunca activar el simulador en producción |
 | P13 | `api/src/db/client.ts` (API generada) conecta sin `prepare:false`; el pooler transaccional de Supabase (6543) fallará cuando los handlers usen la BD | Subproyecto 4 (`prepare:false` o reutilizar el db de `apps/agents`) |
 | P14 | `render.yaml` sin paso de migración; `drizzle-kit` es devDependency y se omite con `NODE_ENV=production` | Resuelto en sp2: preDeployCommand con el migrador de drizzle-orm (DATABASE_URL_DIRECT) |
 | P15 | Canal web sin secreto acepta cualquier email/phone: suplantación de conversación; riesgo real desde sp3 (Agente 2 ve la reserva) | Resuelto en sp3: OTP de 6 dígitos + token HMAC firmado (WIDGET_TOKEN_SECRET) |
@@ -56,3 +56,5 @@
 | P41 | Emergencia desde un número sin reserva va al Agente 1 sin detección previa | Aplicar `detectEmergency` también en leads |
 | P42 | Un proveedor que escribe después del cierre de la incidencia (p. ej. "cliente entregado") cae en el Agente 1 (leads): el reconocimiento filtra `estado <> cerrado` | Quitar el filtro de estado y dejar solo la ventana de 7 días; las cerradas registran `mensaje_proveedor_descartado` |
 | P43 | El reconocimiento del proveedor usa `lower(proveedor_contacto)` y una subconsulta correlada por fila en cada mensaje entrante: no aprovecha el índice; además un solo mensaje del proveedor puede escalar todas sus incidencias activas (ver P33/P37) | Guardar el contacto ya normalizado y comparar con `eq`, o índice funcional; emparejar por referencia (P37) |
+| P44 | Rate limit del login en memoria por instancia; con el tope lleno, un flood de claves desaloja las más antiguas | Al escalar: contador en Postgres/Redis; el limitador IP de `/api/auth/*` mitiga mientras tanto |
+| P45 | Refresh token del backoffice en `sessionStorage` (expuesto a XSS) | Cookie `httpOnly; Secure; SameSite=Strict` emitida por la API cuando frontend y API compartan dominio |
