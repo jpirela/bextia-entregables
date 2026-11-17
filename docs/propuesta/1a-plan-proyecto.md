@@ -25,21 +25,21 @@ Los números de entregable corresponden a los documentos de `docs/entregables/` 
 
 ## 3. Diagrama de Gantt
 
-Escenario alto (318 h, 10 semanas). F3 y F4 se solapan una semana (S6). Las fechas son ilustrativas: lo relevante son las semanas relativas S1–S10.
+Escenario alto (318 h, 10 semanas). F3 y F4 se solapan una semana (S6). Sin fechas de calendario: la línea de tiempo es relativa al inicio y el eje numera los días del plan (001 = primer día; cada semana son 7 días).
 
 ```mermaid
 gantt
     title Plan en semanas relativas (S1 a S10)
-    dateFormat YYYY-MM-DD
-    axisFormat %d/%m
+    dateFormat X
+    axisFormat %j
     section Gobierno
-    F1 Inicio y definición (S1)          :f1, 2026-01-05, 1w
+    F1 Inicio y definición (S1)          :f1, 0, 1w
     section Infraestructura
     F2 Base común e infraestructura (S2-S3) :f2, after f1, 2w
     section Agente 1
     F3 Leads (S4-S6)                     :f3, after f2, 3w
     section Agente 2
-    F4 Incidencias prototipo (S6-S8)     :f4, 2026-02-09, 3w
+    F4 Incidencias prototipo (S6-S8)     :f4, 3024000, 3w
     section Cierre
     F5 Validación y entrega (S9-S10)     :f5, after f4, 2w
 ```
@@ -56,9 +56,11 @@ gantt
 
 ## 5. Supuestos
 
-- El cliente provee la **app de Meta** (WhatsApp Cloud API), un **SMTP** (Resend o Brevo), el **CSV de reservas** y el listado de **comerciales** con su especialidad, idioma y horario.
+- El cliente provee la **app de Meta** (WhatsApp Cloud API), un **SMTP** (p. ej. Resend, Brevo), el **CSV de reservas** y el listado de **comerciales** con su especialidad, idioma y horario.
 - **Sin integración nativa con el CRM** del cliente (el alcance lo excluye por falta de credenciales): el lead se registra en la base propia y se entrega por email y, opcionalmente, por webhook firmado.
 - Un único mercado y zona horaria por defecto (variable `DEFAULT_MARKET`); nuevos mercados son configuración, no desarrollo.
 - Una sola tipología de incidencia accionable (traslado no presentado); otras tipologías reciben respuesta conversacional o se escalan, como pide el alcance.
 - BEXTIA valida con UAT en cada hito en un plazo de 2 días laborables; los retrasos de validación mueven las fechas, no las horas.
+- El alcance de BEXTIA menciona teléfono y app como canales y mensajes proactivos durante el viaje; esta propuesta cubre WhatsApp, email, formulario y web, y la bienvenida solo cuando el viajero contacta primero (ver «Qué no incluye» en 1b).
 - Datos de prueba sintéticos; ningún dato personal real en desarrollo ni en evaluación.
+

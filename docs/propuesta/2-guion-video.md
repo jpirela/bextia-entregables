@@ -2,7 +2,7 @@
 
 Respuesta al punto 2 del correo de BEXTIA: video de unos 5–7 minutos que explique, con partes técnicas y funcionales (pantallas, capturas, funcionamiento, desarrollo), uno de los proyectos de referencia mencionados antes (no este proyecto).
 
-**Proyecto de referencia:** [Proyecto elegido por el usuario]
+**Proyecto de referencia:** BEXTIA agentes
 
 | Tiempo | Bloque | Qué se muestra | Qué se dice |
 |---|---|---|---|
@@ -18,3 +18,4 @@ Respuesta al punto 2 del correo de BEXTIA: video de unos 5–7 minutos que expli
 - Se usa una captura o grabación por flujo, con zoom en lo relevante, y no se leen pantallas completas.
 - Sin datos protegidos, confidenciales ni sensibles del proyecto, del cliente ni personales de ningún tipo; las pantallas se muestran con datos sintéticos (por ejemplo `viajero@ejemplo.test`, `+34600000000`) y sin nombres, logotipos, URLs ni credenciales reales.
 - Antes de grabar, revisar cada captura y la barra del navegador para comprobar que no aparece ninguna ruta, correo, token ni identificador real.
+
