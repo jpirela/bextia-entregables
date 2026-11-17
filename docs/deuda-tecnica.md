@@ -56,3 +56,10 @@
 | P41 | Emergencia desde un número sin reserva va al Agente 1 sin detección previa | Aplicar `detectEmergency` también en leads |
 | P42 | Un proveedor que escribe después del cierre de la incidencia (p. ej. "cliente entregado") cae en el Agente 1 (leads): el reconocimiento filtra `estado <> cerrado` | Quitar el filtro de estado y dejar solo la ventana de 7 días; las cerradas registran `mensaje_proveedor_descartado` |
 | P43 | El reconocimiento del proveedor usa `lower(proveedor_contacto)` y una subconsulta correlada por fila en cada mensaje entrante: no aprovecha el índice; además un solo mensaje del proveedor puede escalar todas sus incidencias activas (ver P33/P37) | Guardar el contacto ya normalizado y comparar con `eq`, o índice funcional; emparejar por referencia (P37) |
+| P44 | Config: la clave `embedding` se filtra antes de `check()` en todos los recursos, no solo en `kb_article` | Limitar el filtro a `kb_article` |
+| P45 | Config: `GET /:recurso` sin orden ni límite; en `kb_article` devuelve el `contenido` completo | Paginar, ordenar y omitir `contenido` en el listado |
+| P46 | Config: `after` reindexa todos los artículos pendientes dentro de la petición, sin timeout | Reindexar en segundo plano o con timeout |
+| P47 | Test de KB no comprueba el vaciado/recálculo de `embedding` ni que `GET` lo omita | Ampliar el test |
+| P48 | Faltan tests de config: campos no listados, PATCH parciales, `on_call`, borrado físico, ids no UUID, `horario`/`festivos` de `sales_agent` | Ampliar `config.test.ts` |
+| P49 | Faltan tests de `agentAvailable`: festivo en borde de fecha UTC/local, `horario` con zona nula, integración de `deliverDue` con horario propio | Ampliar `delivery.test.ts` |
+| P50 | El contrato (`resources.mjs`/`jor.json`) diverge de la API: expone `createProtocol` (404), patrón de `telefono` distinto y faltan `max` | Alinear contrato y config |
