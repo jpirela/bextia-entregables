@@ -46,7 +46,7 @@
 | P31 | Un envío SMTP colgado bloquea la cola de dispatch de esa conversación | Plan 5 junto con P22 (timeout total por turno) |
 | P32 | Temporizadores del protocolo y del SLA por intervalo de 60 s en el proceso (la spec pide cron); una sola instancia | Al escalar: cron de Render o lock en Postgres (pg_advisory_lock); `claimWait` ya evita dobles ejecuciones |
 | P33 | El remitente del proveedor se reconoce por teléfono/email (suplantable) y la verificación por apellido es débil | Firma o enlace de un solo uso para el proveedor; OTP al teléfono/email de la reserva para el viajero |
-| P34 | El reembolso del taxi solo se registra (acción `autorizacion` + KPI); no hay flujo de recibo ni pago | Subproyecto 4 (bandeja de incidencias) o fuera del prototipo |
+| P34 | El reembolso del taxi solo se registra (acción `autorizacion` + KPI); no hay flujo de recibo ni pago | Mitigado en sp4 (Task 5): el operador registra el reembolso (`resultado` con `monto`) solo con una `autorizacion` previa y hasta su tope; recibo y pago real quedan fuera del prototipo |
 | P35 | Redacción para el LLM heurística: tapa palabras comunes que coinciden con un nombre (≥3 letras) y deja pasar referencias de menos de 3 caracteres | Plan 5 (evaluación de prompts) o NER si se detecta pérdida de contexto |
 | P36 | Si el runner lanza tras confirmar el estado, la incidencia solo sale por el escalado SLA; restoreWait sin backoff ante fallos persistentes | Al escalar: contador de reintentos en protocolo_estado |
 | P37 | Respuesta del proveedor emparejada por contacto; con varias incidencias activas no avanza nada (escala/ignora) | Exigir `{{referencia}}` en la respuesta del proveedor y emparejar por ella |
