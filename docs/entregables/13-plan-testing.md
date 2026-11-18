@@ -1,5 +1,93 @@
 # 13 · Plan de testing unitario y de integración
 
+Cómo se prueba BEXTIA agentes, cómo correr cada nivel y el resultado de la última corrida. Rutas relativas a `bextia-agentes/` salvo indicación.
+
+## Estrategia
+
+| Nivel | Qué cubre | Cómo |
+|---|---|---|
+| Unitarios | Funciones puras: scoring, asignación, ruteo, horario comercial, clasificación por reglas (`detectEmergency`, `decideRoute`), redacción de PII, parseo de protocolos, CSV, OTP y tokens, KPI del panel | Vitest, sin red ni base de datos |
+| Integración | Agentes, stores, entrega de leads, escalado, SLA, motor de protocolos, rutas de la API, RLS y migraciones | Vitest con **PGlite** en memoria (`apps/agents/src/db/test-db.ts`) y un **LLM grabado** (`createScriptedLlm` en `apps/agents/src/llm/scripted.ts`) que devuelve respuestas fijas y registra las llamadas |
+| E2E | Recorrido completo de un lead y de una incidencia desde el webhook hasta la respuesta, la entrega o el escalado | Canal **simulador** (`apps/agents/src/e2e/leads.e2e.test.ts`, `incidents.e2e.test.ts`) sobre PGlite y LLM grabado |
+| Evaluación de prompts | Calidad de clasificación y cualificación con **Claude real** | `apps/agents/src/eval/` (`cases.ts`, `run.ts`, `score.ts`); 30 casos sintéticos. Cuesta dinero: solo con aprobación y `EVAL_CONFIRM=si` |
+| Herramientas de documentación | Generador de la matriz y exportación | `node --test` sobre `tools/` (raíz del repo), sin dependencias |
+
+Los tests nunca usan datos reales ni la red: PGlite sustituye a Postgres y el LLM grabado a Anthropic. PGlite no trae pgvector, por lo que la búsqueda semántica no se prueba en local (P6, ver [09](./09-limitaciones.md#calidad-y-pruebas)). En desarrollo, el servicio corre contra Postgres con `SIMULATOR_ENABLED=true`; PGlite se usa solo en los tests.
+
+## Cómo correr cada nivel
+
+Desde la raíz del repositorio:
+
+```bash
+node --test tools/
+```
+
+Desde `bextia-agentes/`:
+
+```bash
+yarn workspace @bextia/agents test
+yarn workspace @bextia/agents typecheck
+yarn workspace @bextia/backoffice test
+yarn workspace @bextia/backoffice typecheck
+```
+
+Los E2E forman parte de `yarn workspace @bextia/agents test`.
+
+Evaluación de prompts (Claude real, requiere `ANTHROPIC_API_KEY` y aprobación del costo), desde `bextia-agentes/`:
+
+```bash
+EVAL_CONFIRM=si yarn workspace @bextia/agents eval
+```
+
+En PowerShell: `$env:EVAL_CONFIRM="si"; yarn workspace @bextia/agents eval`. El resultado queda en `.tmp/eval.json` (no se versiona).
+
+## Cobertura por módulo
+
+Archivos de test por módulo de `apps/agents/src/` y `apps/backoffice/src/lib/`:
+
+| Módulo | Archivos de test |
+|---|---|
+| `api` | `auth`, `config`, `csv`, `import`, `incidents`, `kpi`, `leads`, `sim` |
+| `auth` | `auth` |
+| `channels` | `json-channel`, `web`, `whatsapp` |
+| `db` | `db`, `rls`, `schema-agente2` |
+| `e2e` | `incidents.e2e`, `leads.e2e` |
+| `env` | `env` |
+| `eval` | `score` (más los 30 casos de la evaluación) |
+| `gateway` | `ingest` |
+| `incidents` | `agent`, `classify`, `escalate`, `provider`, `reply`, `runner`, `sla`, `store` |
+| `leads` | `agent`, `assign`, `delivery`, `qualify`, `scoring`, `store` |
+| `llm` | `anthropic` |
+| `notify` | `mailer` |
+| `orchestrator` | `business-hours`, `route` |
+| `protocols` | `engine`, `parse`, `seed` |
+| `rag` | `embedder`, `kb` |
+| `server` | `app`, `pipeline`, `rate-limit`, `scheduler`, `widget-routes` |
+| `widget` | `otp`, `token` |
+| Backoffice `lib` | `api`, `crud-diff`, `deeplink`, `format`, `kpi`, `roles`, `session` |
+
+Cada archivo se llama `<nombre>.test.ts`, junto al módulo que prueba. Huecos conocidos: P49, P50 y P51 ([09](./09-limitaciones.md#calidad-y-pruebas)).
+
+## Cómo regenerar la matriz
+
+La matriz de abajo se genera desde los reportes JSON de Vitest y de la evaluación; no se edita a mano.
+
+1. Desde `bextia-agentes/`, correr las suites con reporte JSON:
+
+   ```bash
+   yarn workspace @bextia/agents test --reporter=json --outputFile=../../../.tmp/vitest-agents.json
+   yarn workspace @bextia/backoffice test --reporter=json --outputFile=../../../.tmp/vitest-backoffice.json
+   ```
+
+2. Opcional, con aprobación del costo: correr la evaluación de prompts (deja `.tmp/eval.json`).
+3. Desde la raíz del repositorio, regenerar la sección entre los marcadores:
+
+   ```bash
+   node tools/test-matrix.mjs docs/entregables/13-plan-testing.md .tmp/vitest-agents.json .tmp/vitest-backoffice.json --eval .tmp/eval.json
+   ```
+
+El script reemplaza solo el contenido entre `<!-- matriz:inicio -->` y `<!-- matriz:fin -->`. Última corrida: 615 casos (585 de Vitest y 30 de evaluación), todos OK.
+
 ## Matriz de resultados
 
 Generada con `node tools/test-matrix.mjs` desde los reportes reales de Vitest y de la evaluación de prompts. No se edita a mano.
@@ -625,3 +713,19 @@ Generada con `node tools/test-matrix.mjs` desde los reportes reales de Vitest y 
 | eval › proveedor | P03 | tipo=desconocido | OK |  |
 | eval › proveedor | P04 | tipo=eta, minutos=15 | OK |  |
 <!-- matriz:fin -->
+
+## Evaluación de prompts
+
+Corrida final con Claude real (clasificación con `claude-haiku-5-5`), 30 casos sintéticos de `apps/agents/src/eval/cases.ts`. Detalle completo en el [anexo de evaluación de prompts](./anexos/eval-prompts.md).
+
+| Prompt | Casos | OK | % |
+|---|---|---|---|
+| cualificacion | 14 | 14 | 100 % |
+| incidencia | 12 | 12 | 100 % |
+| proveedor | 4 | 4 | 100 % |
+| **Total** | **30** | **30** | **100 %** |
+
+- **Hallazgo corregido**: la primera corrida dio 27/30. El esquema JSON del clasificador de respuestas del proveedor (`apps/agents/src/incidents/provider.ts`) declaraba `minimum` y `maximum`, la API respondía 400 y el flujo de error devolvía `desconocido` para todo. Se corrigió en el commit `9d38710`; el rango sigue validado por Clark en tiempo de ejecución. La segunda corrida dio 30/30.
+- **Fallos aceptados**: ninguno.
+- **Alcance**: la evaluación llama al clasificador sin el `detectEmergency` previo de producción, por lo que I03, I05 e I11 miden solo el LLM.
+- **Cuándo repetirla**: tras cambiar un prompt o un esquema JSON, al agregar una tipología ([11](./11-operacion-mantenimiento.md#al-agregar-una-tipología-de-incidencia)) y al ampliar los casos, siempre con aprobación del costo.
