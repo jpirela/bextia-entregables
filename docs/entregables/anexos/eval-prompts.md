@@ -2,7 +2,7 @@
 
 ## Datos de la corrida
 
-- Modelos (`MODELS`): clasificación `claude-haiku-5-5`, conversación `claude-sonnet-5-5`. Los 30 casos usan `classify` (Haiku).
+- Modelos (`MODELS`): clasificación `claude-haiku-5-5`, conversación `claude-sonnet-5-5`. Los 30 casos clasifican con Haiku: 26 llaman a `classify` directamente y los 4 de proveedor pasan por `parseProviderReply`, que prueba primero las reglas (rechazo explícito y ETA por regex) y solo después el LLM; los 4 textos de la evaluación llegan al LLM.
 - Fecha de la corrida final: 2026-11-18 (UTC), según `.tmp/eval.json`.
 - `today` fijo: `2026-11-07` (las fechas relativas de los casos se resuelven contra ese día).
 - Casos: `apps/agents/src/eval/cases.ts` (14 de cualificación, 12 de incidencia y 4 de proveedor). Ejecución secuencial con `yarn workspace @bextia/agents eval` y `EVAL_CONFIRM=si`.
