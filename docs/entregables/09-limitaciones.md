@@ -12,7 +12,7 @@ Lo que el [alcance (01)](./01-documentacion-tecnica.md#alcance) deja fuera a pro
 | Sin CRM nativo | El seguimiento comercial posterior a la entrega se hace fuera del sistema | Email al comercial, webhook firmado `lead.entregado` y export CSV | Integración vía webhook ([10](./10-integraciones.md#integraciones-posibles)) |
 | Sin pagos ni recibos (P34) | El reembolso del taxi solo se registra; el pago real es manual | El operador registra el reembolso solo con una autorización previa y hasta el tope | Fuera del prototipo |
 | Sin canal de voz ni telefonía | Las llamadas no entran al sistema | La guardia recibe el teléfono del viajero en el aviso | Evolutivo ([10](./10-integraciones.md#integraciones-posibles)) |
-| Solo mensajes de texto: imágenes, audios y adjuntos de WhatsApp no se procesan | El contenido no textual no se interpreta | El Agente 1 contesta fuera de horario pidiendo el mensaje por escrito | Evolutivo (transcripción o almacenamiento) |
+| Solo mensajes de texto: imágenes, audios y adjuntos de WhatsApp no se procesan | El contenido no textual no se interpreta | El Agente 1 contesta fuera de horario pidiendo el mensaje por escrito; dentro del horario comercial no se responde automáticamente y lo atiende el comercial | Evolutivo (transcripción o almacenamiento) |
 | El backoffice no envía mensajes al viajero | El operador que toma una incidencia contacta al viajero fuera del sistema | Datos de contacto y conversación visibles en el detalle | Evolutivo |
 
 ## Brechas respecto del alcance
@@ -99,7 +99,7 @@ Indicadores del alcance que el panel todavía no calcula (detalle en [11](./11-o
 | P65 | Los enlaces de los emails abren el detalle en un panel propio; no hay URL por sección | Navegación menos natural | Enlaces `/leads/:id` y `/incidencias/:id` funcionan | Router real |
 | P69 | La bandeja de leads abre en «Nuevo», vacía para un comercial | Confusión al entrar | Cambiar de carpeta | Carpeta inicial según rol |
 | P54, P55 | Si el refresco de sesión falla por red no se reintenta; cerrar sesión sin token en memoria no revoca el refresh token | Sesión aparente vencida; token residual | La siguiente llamada reintenta | Reintento con backoff y revocación por refresh token |
-| P56 | El bundle es un solo archivo de ~508 kB (133 kB gzip) | Primera carga más lenta | Uso interno en escritorio | División por página |
+| P56 | El bundle es un solo archivo de ~508 kB (133 kB gzip); `exceljs`, dependencia opcional de Lara, no está instalada | Primera carga más lenta | Uso interno en escritorio; `exceljs` sin impacto funcional hoy | División por página; instalar `exceljs` si un componente lo exige |
 | P70 | KPI y export usan días UTC, el negocio opera en Europe/Madrid | Los conteos de borde de día se corren una o dos horas | — | Rango en la zona del negocio |
 | P71 | La importación CSV solo acepta coma y UTF-8 | Excel en español guarda con `;` y ANSI | Plantilla descargable | Detectar `;` y avisar de la codificación |
 | P72 | Si falta `VITE_API_URL` en el build, la página queda en blanco | Despliegue defectuoso sin mensaje | Paso de verificación en [06](./06-instrucciones-despliegue.md) | Validar en el build |
@@ -112,7 +112,7 @@ Indicadores del alcance que el panel todavía no calcula (detalle en [11](./11-o
 | P6 | Los tests locales usan PGlite sin pgvector: la búsqueda semántica no se prueba | Un fallo del RAG solo se ve en Supabase | Tests de `rag/` sobre PGlite (sin búsqueda vectorial real) | Validar el RAG contra Supabase en F2 |
 | P49–P51 | Faltan casos de test en base de conocimiento, Configuración y disponibilidad del comercial | Regresiones no detectadas en esos bordes | Suites existentes ([13](./13-plan-testing.md)) | Ampliar los tests |
 | P52 | El contrato de referencia (`resources.mjs`, `jor.json`) diverge de la API real | Documentación generada desde el contrato puede confundir | La fuente de verdad es `apps/agents` | Alinear contrato y configuración |
-| P53 | El script `kb:index` no valida que `SUPABASE_URL` sea https | Error poco claro si se configura mal | Validación en el arranque del servicio | Reusar la validación del entorno |
+| P53 | El script `kb:index` no valida que `SUPABASE_URL` sea https; en `main.ts`, el limitador por IP y el widget se configuran en línea | Error poco claro si se configura mal; código menos ordenado | Validación en el arranque del servicio; sin impacto funcional | Reusar la validación del entorno y extraer las constantes al tocar `main.ts` |
 | P23 | La migración 0002 falla sin diagnóstico si hay duplicados | Primer deploy bloqueado | Consulta previa en el runbook ([06](./06-instrucciones-despliegue.md#paso-5-migraciones)) | Antes del primer deploy |
 
 ## Herramientas del ecosistema Krypton

@@ -29,7 +29,7 @@ Fases: F1 Inicio · F2 Base común e infraestructura · F3 Agente 1 · F4 Agente
 
 - **Supabase** (plan Pro, ver [1b](../propuesta/1b-propuesta-economica.md)): proyecto en región UE con Postgres, Auth y Edge Functions. Se necesitan la URL del proyecto (`SUPABASE_URL`, https), la clave publicable (`SUPABASE_ANON_KEY`), la cadena del pooler (`DATABASE_URL`, puerto 6543) y la de sesión para migraciones (`DATABASE_URL_DIRECT`, puerto 5432). En Auth deben quedar **desactivados los registros públicos** (precondición de la política RLS de comerciales, P68).
 - **Render**: workspace con facturación a nombre de BEXTIA. El Blueprint (`render.yaml`) crea el servicio web `bextia-agentes-api` (plan `starter`, Frankfurt) y el sitio estático `bextia-backoffice`.
-- **Anthropic**: organización con una API key de producción (`ANTHROPIC_API_KEY`) y un **límite de gasto mensual** configurado en la consola. Sin clave, el servicio arranca pero responde siempre con el mensaje de respaldo.
+- **Anthropic**: organización con una API key de producción (`ANTHROPIC_API_KEY`) y un **límite de gasto mensual** configurado en la consola. En producción el servicio no arranca sin ella; en desarrollo arranca y el Agente 1 responde con el mensaje de respaldo (`apps/agents/src/main.ts`, `createUnavailableLlm`).
 - BEXTIA es la titular de las tres cuentas. El implantador recibe acceso de colaborador durante la implantación y lo devuelve al cierre. Ninguna clave se envía por chat ni por email: se cargan directamente en el panel de Render.
 
 ### 2. WhatsApp Cloud API
@@ -108,7 +108,7 @@ Columnas que valida el importador (`apps/agents/src/api/import.ts`, plantilla de
 
 ### 10. Tope de autorización
 
-BEXTIA fija el monto máximo que el agente puede autorizar para un taxi cuando el traslado no se presenta, y la moneda (por omisión `EUR`). Se siembra con `yarn workspace @bextia/agents protocol:seed <tope> <moneda>` y después solo el administrador puede cambiarlo (o desactivar el protocolo) en Configuración. El LLM nunca fija montos. Responsable de la política: dirección de operaciones.
+BEXTIA fija el monto máximo que el agente puede autorizar para un taxi cuando el traslado no se presenta, y la moneda (obligatoria, por ejemplo `EUR`). Se siembra con `yarn workspace @bextia/agents protocol:seed <tope> <moneda>` (contra una base remota hace falta `ALLOW_REMOTE_SEED=1`, ver [06](./06-instrucciones-despliegue.md#paso-6-proyecto-supabase-auth-y-roles)) y después solo el administrador puede cambiarlo (o desactivar el protocolo) en Configuración. El LLM nunca fija montos. Responsable de la política: dirección de operaciones.
 
 ### 11. Guardia humana
 
@@ -128,7 +128,7 @@ Un comercial, un operador y un administrador durante F5, con un número de Whats
 
 ## Requisitos del navegador (backoffice)
 
-- Navegador de escritorio actualizado con JavaScript habilitado. El build usa el objetivo por omisión de Vite 8 (navegadores «baseline widely available»: Chrome y Edge 107 o superior, Firefox 104 o superior, Safari 16 o superior).
+- Navegador de escritorio actualizado con JavaScript habilitado. El build usa el objetivo por omisión de Vite 8 (navegadores «baseline widely available»: Chrome y Edge 111 o superior, Firefox 114 o superior, Safari 16.4 o superior).
 - `sessionStorage` habilitado: la sesión se guarda ahí y se pierde al cerrar la pestaña (P45).
 - La red debe permitir la URL de la API (`https://bextia-agentes-api.onrender.com`), fijada en la política CSP `connect-src` del sitio estático.
 - Pantalla recomendada de 1280 px de ancho o más; el uso en móvil no está verificado (P64).

@@ -54,18 +54,18 @@ Los KPI no medidos figuran también en [09](./09-limitaciones.md#kpi-no-medidos)
 
 ## Rutinas
 
-### Diaria (operador y comercial, 15 min)
+### Diaria (15 min por rol)
 
-1. Revisar la bandeja de **Incidencias**: escaladas sin tomar y abiertas con SLA cercano.
-2. Revisar la bandeja de **Leads** con `requiere_humano` (sin comercial asignado) y repartirlos.
-3. Confirmar que hay una persona de guardia activa ([04](./04-manual-operacion.md#tareas-frecuentes)).
-4. Si se usó la importación, revisar las filas con errores.
+1. **Operador**: revisar la bandeja de **Incidencias**: escaladas sin tomar y abiertas con SLA cercano.
+2. **Comercial**: revisar sus leads asignados y entregados en la bandeja de **Leads**.
+3. **Administrador**: repartir los leads con `requiere_humano` sin comercial asignado (solo `admin` puede reasignar).
+4. **Administrador**: confirmar en Configuración que hay una persona de guardia activa ([04](./04-manual-operacion.md#tareas-frecuentes)) y, si se usó la importación, revisar las filas con errores.
 
 ### Semanal (administrador, 1 h)
 
 1. Revisar el panel KPI de los últimos 7 días: tasa de entrega, escaladas, resolución mediana.
 2. Revisar una muestra de 10 incidencias: tipología asignada y si el escalado era necesario. Anotar los fallos de clasificación como casos nuevos de evaluación.
-3. Revisar en los logs de Render los eventos `fallback_llm`, `error_agente`, `envio_fallido`, `webhook_fallido` y `aviso_guardia_fallido`.
+3. Consultar en la tabla `kpi_event` (editor SQL de Supabase) los eventos `fallback_llm`, `error_agente`, `envio_fallido`, `webhook_fallido` y `aviso_guardia_fallido`; en los logs de Render, revisar los `console.error` con prefijo `leads:` o `incidencias:` (solo registran el nombre del error).
 4. Revisar los leads sin entregar de más de un día.
 
 ### Mensual (administrador y TI, 3 h)
