@@ -85,3 +85,11 @@
 | P70 | Rango de KPI/export en días UTC mientras el negocio opera en Europe/Madrid (`lib/kpi.ts`, `api/http.ts`, `summarize`) | Enviar instantes ISO en la zona del negocio o aceptar `tz` en la API |
 | P71 | Importación CSV: solo separador coma y UTF-8 (`api/csv.ts`, `pages/Import.tsx`); Excel en español guarda con `;` y ANSI | Detectar `;`, avisar si hay `�` y documentar "CSV UTF-8" en la página |
 | P72 | Backoffice: si falta `VITE_API_URL` en el build, `lib/client.ts` lanza al cargar y la página queda en blanco sin mensaje | Validar al arrancar con error claro o fallar el build en `vite.config.ts` |
+| P73 | El KPI de primera respuesta del backoffice (`apps/backoffice/src/lib/kpi.ts`, `primeraRespuestaP50`) filtra eventos `first_response`, pero ningún agente lo emite: Agente 1 (`leads/agent.ts`) e incidencias (`incidents/reply.ts`) registran `respuesta_enviada`, con `valor` en milisegundos (la vista y los tests asumen segundos) | Unificar el nombre del evento y la unidad (ms a s en la vista) y corregir los fixtures de `kpi.test.ts` (backoffice y API) |
+| P74 | RNF-01 (respuesta en menos de 30 s) no está garantizada: el cliente Anthropic usa `timeout: 20_000` con `maxRetries: 2` (`apps/agents/src/main.ts`) y un turno encadena varias llamadas (extracción, embedding, conversación) sin presupuesto total. Relacionado con P22 y P31 | Presupuesto total por turno con `AbortSignal` y respuesta de respaldo; medir con `respuesta_enviada` una vez corregido P73 |
+| P75 | El esquema JSON de la respuesta del proveedor llevaba `minimum`/`maximum` y la API de Anthropic devolvía 400: toda respuesta de proveedor que llegaba al LLM terminaba como «desconocido» | Resuelto en sp5 (commit 9d38710): restricciones quitadas del esquema (`incidents/provider.ts`); el rango sigue validado por Clark y por el chequeo de runtime. Detectado por la evaluación de prompts (casos P01, P02, P04) |
+
+## Estado al cierre
+
+- Ítems abiertos: 63 (4 de Krypton, K1-K4, y 59 del proyecto, entre ellos P5, P26, P30 y P34, solo mitigados o resueltos en parte); 16 ítems del proyecto resueltos.
+- Documentados en `docs/entregables/09-limitaciones.md` (limitaciones y mitigaciones) y `docs/entregables/12-riesgos.md` (riesgos; R5 cubre P22, P73 y P74).
